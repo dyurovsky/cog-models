@@ -1,0 +1,157 @@
+---
+title: "Prototype effects in Exemplar Models"
+author: "Your name(s)"
+date: "Date of submission"
+output: 
+  html_document: 
+    highlight: tango
+    theme: spacelab
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+theme_set(theme_classic(base_size = 16))
+```
+
+* * *
+
+Make the prototypes
+```{r make_prototypes}
+# Make prototype A by setting each cell of a 16x16 grid randomly to be white 
+# or black
+a <- tibble(row = 1:16, col = 1:16) %>%
+  expand(row, col) %>%
+  mutate(value =  rbinom(256, 1, .5))
+
+# Pick 7 cells from each row and flip their value (to make prototype B)
+different <- a %>%
+  group_by(row) %>%
+  sample_n(7) %>%
+  mutate(value = as.numeric(!value)) %>%
+  ungroup()
+
+# Find the cells which will not differ between prototypes
+same <- anti_join(a, different, by = c("row", "col"))
+
+# Make prototype B
+b <- bind_rows(different, same)
+```
+
+Plot the prototypes to see what we got
+```{r plot_prototypes, fig.width= 8, fig.height= 4}
+prototypes <- a %>%
+  mutate(prototype = "a") %>%
+  bind_rows(mutate(b, prototype = "b"))
+
+ggplot(prototypes, aes(x = row, y = col, fill = as.factor(value))) + 
+  facet_wrap(~ prototype) +
+  geom_tile(color = "black") + 
+  theme(legend.position = "none", axis.text = element_blank(),
+        axis.line = element_blank(), axis.ticks = element_blank(),
+        axis.title = element_blank()) + 
+  scale_fill_manual(values = c("black", "white")) 
+```
+
+
+Write functions that make close and far examplars as in McLaren et al.
+```{r make_exemplar}
+close_exemplar <- function(prototype) {
+  changed <- different %>%
+    sample_n(25) %>%
+    select(-value) %>%
+    left_join(prototype, by = c("row", "col")) %>%
+    mutate(value = as.numeric(!value))
+  
+  anti_join(prototype, changed, by = c("row", "col")) %>%
+    bind_rows(changed) %>%
+    mutate(type = "close")
+} 
+
+far_exemplar <- function(prototype) {
+  changed <- same %>%
+    sample_n(25) %>%
+    select(-value) %>%
+    left_join(prototype, by = c("row", "col")) %>%
+    mutate(value = as.numeric(!value))
+  
+  
+  anti_join(prototype, changed, by = c("row", "col")) %>%
+    bind_rows(changed) %>%
+    mutate(type = "far")
+} 
+```
+
+Plot a close and far exemplar of A
+```{r plot_manips, fig.width= 10, fig.height= 2.5}
+a_manips <- prototypes %>%
+  rename(type = prototype) %>%
+  bind_rows(close_exemplar(a) %>% mutate(type = "close a"),
+            far_exemplar(a) %>% mutate(type = "far a")) %>%
+  mutate(type = factor(type, levels = c("far a", "a","close a", "b")))
+
+ggplot(a_manips, aes(x = row, y = col, fill = as.factor(value))) + 
+  facet_grid(. ~ type) +
+  geom_tile(color = "black") + 
+  theme(legend.position = "none", axis.text = element_blank(),
+        axis.line = element_blank(), axis.ticks = element_blank(),
+        axis.title = element_blank()) + 
+  scale_fill_manual(values = c("black", "white")) 
+
+
+```
+
+Simulate training (20 per exemplar type)
+```{r simulate_training}
+N_TYPE <- 20
+
+
+```
+
+The General Context Model distance function
+```{r d_gcm}
+d_gcm <- function(x, y, r = 1) {
+
+}
+```
+
+The General Context Model similarity function
+```{r s_gcm}
+s_gcm <- function(d,  c = .01) {
+
+}
+```
+
+Luce Choice axiom. You might find it easier to organize it so that the correct category is always first (but of course you can do this however you prefer).
+```{r luce_choice}
+luce_choice <- function(s_correct, s_incorrect) {
+  
+}
+```
+
+Compute similarities of all new test items to the exemplars from each category
+```{r test_similarities}
+
+```
+
+
+Compute test behavior. Make sure you do this for both $r = 1$ and $r = 2$
+```{r test_choices}
+
+```
+
+Plot the results for the two similarity functions
+```{r test_plots}
+
+```
+
+Build a very simple prototype model
+```{r prototype_model}
+
+```
+
+Plot the outcomes for $r = 1$ and $r = 2$
+```{r prototype_plots}
+
+```
