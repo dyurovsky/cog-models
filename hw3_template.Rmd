@@ -1,0 +1,214 @@
+---
+title: "SMarkov Chain Monte Carlo"
+author: "Your name(s)"
+date: "Date of submission"
+output: 
+  html_document: 
+    highlight: tango
+    theme: spacelab
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+theme_set(theme_classic(base_size = 16))
+```
+
+* * *
+
+The exponential function
+```{r exponential}
+exponential <- function(x, lambda = 3) {
+ 
+  # the Exponential distribution is undefined for x < 0, 
+  # so those values should have 0 probability
+  if( x < 0) 
+    return(0)
+  else
+    # define exponential here
+}
+```
+
+```{r metropolis-hastings-exponential}
+# return samples from a Gaussian centered at x
+gaussian_proposal <- function(x, sigma = 1) {
+  
+}
+
+mh_exponential <- function(target = exponential, proposal, iterations = 1000,
+               start = 1) {
+  
+  samples <- rep(start, iterations)
+  ps <- rep(target(start), iterations)
+  
+  for(i in 2:iterations) {
+    current_x <- samples[i - 1]
+    
+    #propose a new x
+    #copmute alpha
+    
+    if(runif(1) <= alpha) {
+      # add the new proposed sample to the samples, 
+      # and add it's probability to ps
+    } else{
+      # add the new old sample to the samples again, 
+      # and add it's probability to ps
+    }
+
+  }
+  
+  # return a tidy representation of the samples
+  tibble(iteration = 1:iterations,
+         value = samples, 
+         f = ps)
+}
+
+
+out_exponential <- mh_exponential(exponential, gaussian_proposal)
+```
+
+```{r plot_exponential}
+
+# look at f(x) over the course of samples
+# look at a histogram of samples. Did you get an exponential?
+```
+
+
+```{r dirichlet}
+# define the Beta function
+beta <- function(alpha) {
+
+}
+
+dirichlet <- function(x, alpha) {
+  
+  # Dirichlet is only defined if the alphas are >0, 0 < xs < 1, and sum(xs) = 1 
+  if(any(alpha <= 0) | any(x < 0) | any(x > 1) | (abs(sum(x) - 1)) >= epsilon)
+    return(0)
+  else
+    #define the dirichlet distribution
+}
+```
+
+
+```{r metropolis-hastings-dirichlet}
+# return samples from a Gaussian centered at x
+delta_proposal <- function(x, max_value = .2) {
+  
+  # sample a delta uniformly between -max_value and max_value
+  # return (x[1]-delta, x[2]+delta)
+  
+}
+
+mh_dirichlet <- function(target, proposal, iterations = 1000,
+                         start = c(.5,.5)) {
+  
+  samples <- rep(start, iterations)
+  ps <- rep(target(start), iterations)
+  
+  for(i in 2:iterations) {
+    current_x <- samples[i - 1]
+    
+    #propose a new x
+    #copmute alpha
+    
+    if(runif(1) <= alpha) {
+      # add the new proposed sample to the samples, 
+      # and add it's probability to ps
+    } else{
+      # add the new old sample to the samples again, 
+      # and add it's probability to ps
+    }
+
+  }
+  
+  # return a tidy representation of the samples
+  tibble(iteration = 1:iterations,
+         value = samples, 
+         f = ps)
+}
+
+
+out_dirichlet <- mh_dirichlet(target = function(x) {pdirichlet(x, c(.7,4))}, 
+   proposal = delta_proposal, iterations = 2000)
+```
+
+```{r plot_dirichlet}
+
+# look at f(x) over the course of samples
+# look at a histogram of the values for both dimensions.
+```
+
+```{r metropolis-hastings-inference}
+mystery_samples <- read_csv("http://bit.ly/dirichlet-samples") %>%
+  rowwise() %>%
+  mutate(value = list(c(dim1, dim2))) %>%
+  pull(value)
+
+# Compute product of probabilities of all samples given alpha
+compound_dirichlet_prob <- function(samples, alphas) {
+
+}
+
+# Think about what proposal function makes sense here. 
+# Dirichlet parameters have to be >= 0
+inference_proposal <- function(alpha) {
+
+}
+
+
+mh_d_inference <- function(target_samples, target, proposal, 
+                           iterations = 5000, 
+                           start = c(1, 1)) {
+  
+  samples <- rep(list(start), iterations)
+  ps <- rep(target(target_samples, start), iterations)
+  
+
+  for(i in 2:iterations) {
+    current_x <- samples[i - 1] %>%
+      unlist()
+
+    # propose a new paramater vector vector
+    # compute probability of target samples under the new parameterization
+  
+    # in case something goes wrong with the probability multiplication
+    if(is.na(alpha))
+      alpha = 0
+    
+    if(runif(1) <= alpha) {
+      # add the new proposed paramterization to the samples, 
+      # and add the probability it gives to target_samples to ps
+    } else{
+      # add the old proposed paramterization to the samples again, 
+      # and add the probability it gives to target_samples to ps
+    }
+
+  }
+
+  }
+ 
+  # tidy sampling output
+  tibble(iteration = 1:iterations,
+         value = samples,
+         f = ps) %>%
+    group_by(iteration) %>%
+    unnest() %>%
+    mutate(dimension = 1:n())
+}
+
+output_inf <- mh_d_inference(target_samples = mystery_samples, 
+                           target = compound_dirichlet_prob, 
+   proposal = inference_proposal)
+```
+
+```{r plot_inference}
+# look at f(x) over the course of samples
+# look at a histogram of the values for both dimensions.
+
+# compute the mean of the samples for each of the two dimensions. 
+# Are they close to what you should expect? 
+# Hint: The expect value of a dirichlet distribution on each dimension alpha_i 
+# is alpha_i / sum(alpha)
+```
